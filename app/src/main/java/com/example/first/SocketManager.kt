@@ -14,7 +14,7 @@ package com.example.first
             val options = IO.Options()
             options.path = "/socket.io"
             // Set any additional options here if needed
-            socket = IO.socket("http://192.168.200.154:3000/counsel", options)
+            socket = IO.socket("http://192.168.200.182:3000/counsel", options)
         } catch (e: URISyntaxException) {
             e.printStackTrace()
         }

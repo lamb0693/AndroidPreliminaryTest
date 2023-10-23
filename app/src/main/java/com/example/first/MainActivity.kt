@@ -10,6 +10,8 @@ import com.example.first.databinding.ActivityMainBinding
 import com.example.first.ui.login.LoginActivity
 import com.example.first.ui.login.LoginViewModel
 import com.example.first.ui.login.LoginViewModelFactory
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import io.socket.emitter.Emitter
 import retrofit2.Call
 import retrofit2.Callback
@@ -21,15 +23,22 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : AppCompatActivity() {
     lateinit var socketManager :SocketManager
 
-    val callbackCreateRoom : (String, String) -> Unit = {
-        result, roomName -> Log.i("callbackCreateRoom", "$result,$roomName")
+    // kotlin 에서는 callback 함수를 보내면 nodejs가 처리를 못하는 듯
+//    val callbackCreateRoom : (String, String) -> Unit = {
+//        result, roomName -> Log.i("callbackCreateRoom", "$result,$roomName")
+//    }
+    // 대신 서버에서 메시지 보내게 처리 하기로 함
+    private val onCreateRoomResultReceived = Emitter.Listener { args ->
+        runOnUiThread {
+            val message = args[0].toString()
+            Log.i("onCreateRoomResultReceived>>", args[0].toString())
+        }
     }
 
     private val onChatMessageReceived = Emitter.Listener { args ->
         runOnUiThread {
             val message = args[0].toString()
             Log.i("onChatMessageReceived>>", args[0].toString())
-            // Handle the received message here
         }
     }
 
@@ -37,18 +46,22 @@ class MainActivity : AppCompatActivity() {
         runOnUiThread {
             val message = args[0].toString()
             Log.i("onRooMInfoMessageReceived>>", args[0].toString())
-            // Handle the received message here
+            var roomArray = ArrayList<RoomInfo>()
+            val gson : Gson = Gson()
+            roomArray = gson.fromJson(args[0].toString(), object : TypeToken<ArrayList<RoomInfo>>() {}.type)
+            for(room in roomArray){
+                Log.i("onRooMInfoMessageReceived>>", room.toString())
+            }
         }
     }
 
-    private val onCreateRoomResultReceived = Emitter.Listener { args ->
-        runOnUiThread {
-            val message = args[0].toString()
-            Log.i("onCreateRoomResultReceived>>", args[0].toString())
-            // Handle the received message here
+    inner class RoomInfo{
+        var roomName : String? = null
+        var roomSize : Int? = null
+        override fun toString(): String {
+            return "RoomInfo(roomName=$roomName, roomSize=$roomSize)"
         }
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
